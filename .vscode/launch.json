@@ -6,8 +6,8 @@
             "request": "launch",
             "program": "${command:cmake.launchTargetPath}",
             "args": [],
-            "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "stopAtEntry": true,
+            "cwd": "D:/Projects/vslam_lab/test2",
             "environment": [],
             "console": "externalTerminal"
         } 
