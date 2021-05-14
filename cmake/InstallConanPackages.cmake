@@ -52,8 +52,8 @@ MACRO(InstallConanPackages input)
         COMMAND "conan" "install" "${input}"  "-s" "build_type=${CMAKE_BUILD_TYPE}"
         WORKING_DIRECTORY "${arg_output}"
         RESULT_VARIABLE process_result
-        
-    )
+        OUTPUT_QUIET
+    ) 
 
     if(NOT ${process_result} EQUAL 0)
         message(FATAL_ERROR "error occurred while installing conan dependencies (returned: ${process_result})")
