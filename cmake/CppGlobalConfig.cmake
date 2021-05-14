@@ -8,6 +8,8 @@ CppGlobalConfig(
     [defs                  MACRO...] 
 )
 
+初始化C++相关的全局设置。
+
 std
     编译时采用的C++标准，例如：11 14 17 等。该值直接被写入CMAKE_CXX_STANDARD中。
 
