@@ -3,7 +3,7 @@ include(CMakeParseArguments)
 #[[
 
 InstallConanPackages(
-    <conanfile.txt 所在的路径>
+    <conanfile.txt所在的路径>
     <output             输出目录>
     [packages_to_find   包名1 包名2 ...]  
 )
@@ -14,8 +14,8 @@ InstallConanPackages(
 例：
 
 InstallConanPackages(
-    input                   ".."
-    output                  "./3rdparty"
+    "${CMAKE_CURRENT_LIST_DIR}"
+    output                  "${CMAKE_CURRENT_LIST_DIR}/3rdparty"
     packages_to_find        "fmt" "boost"
 )
 
@@ -46,8 +46,9 @@ MACRO(InstallConanPackages input)
     endif()
 
     # Add to CMAKE_MODULE_PATH
-    set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${arg_output}" PARENT_SCOPE)
+    set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${arg_output}"  )
 
+    message("Executing: conan install ${input} -s build_type=${CMAKE_BUILD_TYPE} ")
     execute_process(
         COMMAND "conan" "install" "${input}"  "-s" "build_type=${CMAKE_BUILD_TYPE}"
         WORKING_DIRECTORY "${arg_output}"
