@@ -38,9 +38,13 @@ function(AddTarget)
     foreach(_dep   ${arg_depends})
 
         if(NOT ${_dep}_INCLUDE_DIRS )
-            message(FATAL_ERROR "package `${_dep}` does not seem to exist")
-            find_package(${_dep} REQUIRED)
-        endif() 
+            message( "calling find_package(${_dep}) ...")
+            find_package(${_dep}) 
+        endif()
+
+        if(NOT ${_dep}_INCLUDE_DIRS )
+            message(FATAL_ERROR "cannot find package `${_dep}` which is a dependency of ${arg_name}")
+        endif()
 
         if(${_dep}_INCLUDE_DIRS)
             list(APPEND Includes "${${_dep}_INCLUDE_DIRS}")
