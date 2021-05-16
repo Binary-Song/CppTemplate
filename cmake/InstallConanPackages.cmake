@@ -59,9 +59,12 @@ MACRO(InstallConanPackages input)
     if(NOT ${process_result} EQUAL 0)
         message(FATAL_ERROR "error occurred while installing conan dependencies (returned: ${process_result})")
     endif()
-
+ 
+    set(msg_lvl ${CMAKE_MESSAGE_LOG_LEVEL})
+    set(CMAKE_MESSAGE_LOG_LEVEL "WARNING")
     foreach(_pname ${arg_packages_to_find})
-        find_package(${_pname} MODULE )
+        find_package(${_pname} MODULE QUIET)
     endforeach()
-     
+    set(CMAKE_MESSAGE_LOG_LEVEL ${msg_lvl}) 
+    
 ENDMACRO()
