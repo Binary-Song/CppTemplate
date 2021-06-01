@@ -3,7 +3,7 @@
     "default": "Debug",
     "description": "The build type.",
     "choices": {
-      "debugs": {
+      "debug": {
         "short": "Debug",
         "long": "关闭优化-包括调试信息",
         "buildType": "Debug"

@@ -8,8 +8,6 @@ CppGlobalConfig(
     [defs                  MACRO...] 
 )
 
-初始化C++相关的全局设置。
-
 std
     编译时采用的C++标准，例如：11 14 17 等。该值直接被写入CMAKE_CXX_STANDARD中。
 
@@ -61,38 +59,7 @@ macro(extract_argnames   x  argv)
     endforeach()
 endmacro()
 
-
-
-# 求差集
-function(set_diff S T out)
-    list(APPEND S_minus_T ${S})
-    list(REMOVE_ITEM S_minus_T ${T})
-    set(${out} "${S_minus_T}" PARENT_SCOPE)
-endfunction()
-
-# 求并集 
-function(set_union S T out)
-    list(APPEND union_list ${S} ${T})
-    list(REMOVE_DUPLICATES union_list)
-    set(${out} "${union_list}" PARENT_SCOPE)
-endfunction()
-
-# 求对称差
-function(set_symdiff S T out)
-    set_diff("${S}" "${T}" s_minus_t)
-    set_diff("${T}" "${S}" t_minus_s)
-    set_union("${s_minus_t}" "${t_minus_s}" symdiff)
-    set(${out} "${symdiff}" PARENT_SCOPE)
-endfunction()
-
-# 求交集（上面的集合函数都是为了求我做准备）
-function(set_intersect S T out)
-    set_union("${S}" "${T}" s_u_t)
-    set_symdiff("${S}" "${T}" s_d_t)
-    set_diff("${s_u_t}" "${s_d_t}" itsc)
-    set(${out} "${itsc}" PARENT_SCOPE)
-endfunction()
-
+ 
 #[[
     # message("compiler ids = ${compiler_ids}")
     # message("arg names = ${argnames}")
@@ -167,10 +134,18 @@ cmake_parse_arguments(
 )
 
 # 计算三次out_unparsed的*交集*，赋值给never_parsed_args
-set_intersect("${flags_unparsed}" "${defs_unparsed}" u1)
-set_intersect("${u1}" "${arg_UNPARSED_ARGUMENTS}" never_parsed_args)
-
-# 如果不为空，则报错
+ 
+foreach(arg ${flags_unparsed} ${defs_unparsed} ${arg_UNPARSED_ARGUMENTS})
+    string(MD5 hash "${arg}") 
+    if(DEFINED ${hash}_cnt)
+        math(EXPR ${hash}_cnt "${${hash}_cnt}+1")
+        if(${hash}_cnt EQUAL "3")
+            list(APPEND never_parsed_args "${arg}")
+        endif()
+    else()
+        set(${hash}_cnt 1)
+    endif()
+endforeach()
 if(never_parsed_args)
     message(FATAL_ERROR "unknown args: ${never_parsed_args}")
 endif()
@@ -180,6 +155,7 @@ if(arg_std)
     set(CMAKE_CXX_STANDARD ${arg_std} PARENT_SCOPE) 
     set(CMAKE_CXX_STANDARD_REQUIRED ON PARENT_SCOPE) 
     set(CMAKE_CXX_EXTENSIONS OFF PARENT_SCOPE)
+    message("std = ${arg_std}")
 endif()
  
 endfunction(CppGlobalConfig)

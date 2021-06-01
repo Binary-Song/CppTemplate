@@ -1,9 +1,0 @@
-[requires]
-fmt/7.1.3 
-
-[generators]
-cmake_find_package
-cmake_paths
- 
-[imports]
-bin, *.dll -> ./bin # 假设exe文件在bin目录（一般如此），那么就将dll也安装到bin目录。具体情况具体看，总之exe和dll放一起

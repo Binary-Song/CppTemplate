@@ -2,69 +2,93 @@ include(CMakeParseArguments)
 
 #[[
 
-InstallConanPackages(
-    <conanfile.txt所在的路径>
-    <output             输出目录>
-    [packages_to_find   包名1 包名2 ...]  
+InstallConanPackages( 
+    <cwd             输出目录>
+    [packages        包名1 包名2 ...]
+    [bin_dir         动态库拷贝目的地]
 )
 
 调用 `conan install` 安装所有conan依赖。
-如果指定了packages_to_find列表，则会尝试用find_package(...)寻找列表中指定名称的包。
- 
+
+cwd
+        工作目录。存放conan生成的各种FindXXX.cmake文件
+
+packages
+        conan包的名称。例如opencv/4.5.2
+
+bin_dir
+        动态库拷贝目的地（绝对路径）。安装包后，会将所有的动态库拷贝到此路径。
+
 例：
 
-InstallConanPackages(
-    "${CMAKE_CURRENT_LIST_DIR}"
-    output                  "${CMAKE_CURRENT_LIST_DIR}/3rdparty"
-    packages_to_find        "fmt" "boost"
+InstallConanPackages( 
+    cwd                  "${CMAKE_SOURCE_DIR}/3rdparty"
+    packages             "opencv/4.5.2"
+    bin_dir              "${CMAKE_BINARY_DIR}/bin/${CMAKE_BUILD_TYPE}"
 )
 
 ]] 
-MACRO(InstallConanPackages input)
- 
-    set(args "${ARGV}")
-    list(POP_FRONT args) 
+function(InstallConanPackages) 
 
     cmake_parse_arguments( 
         "arg"                               # prefix
         ""                                  # optional args
-        "output;"                           # one value args
-        "packages_to_find"                  # multi value args
-        ${args}
+        "cwd;"                               # one value args
+        "packages;bin_dir"                  # multi value args
+        ${ARGN}
     )
-    
-    
-
-    # arg checking 
+     
+    # 检查参数
 
     if(arg_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "unrecognized argument(s): ${arg_UNPARSED_ARGUMENTS}")
     endif()
  
-    if(NOT arg_output)
-        message(FATAL_ERROR "output directory required")
+    if(NOT arg_cwd)
+        message(FATAL_ERROR "cwd required")
     endif()
 
-    # Add to CMAKE_MODULE_PATH
-    set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${arg_output}"  )
+    if(NOT CMAKE_BUILD_TYPE)
+        message(FATAL_ERROR "Set CMAKE_BUILD_TYPE first!")
+    endif()
 
-    message("Executing: conan install ${input} -s build_type=${CMAKE_BUILD_TYPE} ")
+    # 生成conanfile.txt
+    foreach(p ${arg_packages})
+        set(packages_str "${packages_str}\n${p}")
+    endforeach()
+    
+    if(arg_bin_dir) 
+        file(WRITE "${arg_cwd}/conanfile.txt" "
+[requires] 
+${packages_str}
+[generators]
+cmake_find_package 
+[imports]
+bin, * -> ${arg_bin_dir}
+        ") 
+    else()
+        file(WRITE "${arg_cwd}/conanfile.txt" "
+[requires] 
+${packages_str}
+[generators]
+cmake_find_package 
+        ")
+    endif()
+
+    # 将cwd添加到CMAKE_MODULE_PATH里面
+    set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${arg_cwd}" PARENT_SCOPE)
+
+    # 执行 conan install
     execute_process(
-        COMMAND "conan" "install" "${input}"  "-s" "build_type=${CMAKE_BUILD_TYPE}"
-        WORKING_DIRECTORY "${arg_output}"
+        COMMAND "conan" "install" "${arg_cwd}" "-s" "build_type=${CMAKE_BUILD_TYPE}"
+        WORKING_DIRECTORY "${arg_cwd}"
         RESULT_VARIABLE process_result
         OUTPUT_QUIET
-    ) 
+    )
 
     if(NOT ${process_result} EQUAL 0)
-        message(FATAL_ERROR "error occurred while installing conan dependencies (returned: ${process_result})")
+        message(FATAL_ERROR "Error occurred while installing conan dependencies. (returned: ${process_result})")
     endif()
  
-    set(msg_lvl ${CMAKE_MESSAGE_LOG_LEVEL})
-    set(CMAKE_MESSAGE_LOG_LEVEL "WARNING")
-    foreach(_pname ${arg_packages_to_find})
-        find_package(${_pname} MODULE QUIET)
-    endforeach()
-    set(CMAKE_MESSAGE_LOG_LEVEL ${msg_lvl}) 
     
-ENDMACRO()
+endfunction()
