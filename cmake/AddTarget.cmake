@@ -91,7 +91,7 @@ function(AddTarget)
         if(NOT ${_dep}_FOUND )
             set(msg_lvl ${CMAKE_MESSAGE_LOG_LEVEL})
             set(CMAKE_MESSAGE_LOG_LEVEL "WARNING")
-                find_package(${_dep}  QUIET) 
+                find_package(${_dep} MODULE) 
             set(CMAKE_MESSAGE_LOG_LEVEL ${msg_lvl})  
         endif()
 

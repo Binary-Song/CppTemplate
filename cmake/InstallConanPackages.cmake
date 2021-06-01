@@ -76,7 +76,7 @@ cmake_find_package
     endif()
 
     # 将cwd添加到CMAKE_MODULE_PATH里面
-    set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${arg_cwd}" PARENT_SCOPE)
+    set(CMAKE_MODULE_PATH "${arg_cwd};${CMAKE_MODULE_PATH}" PARENT_SCOPE)
 
     # 执行 conan install
     execute_process(
